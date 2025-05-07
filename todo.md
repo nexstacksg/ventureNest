@@ -1,18 +1,18 @@
 # VentureNest Project - Todo List
 
 ## Authentication & User Management
-- [ ] Implement user registration system
-  - [ ] Create registration form UI
-  - [ ] Set up email validation
-  - [ ] Implement password strength requirements
-  - [ ] Add terms and conditions acceptance
-  - [ ] Create user profile in Supabase upon registration
-- [ ] Implement login system
-  - [ ] Create login form UI
-  - [ ] Implement authentication logic with Supabase
-  - [ ] Set up JWT token management
-  - [ ] Add "Remember me" functionality
-  - [ ] Implement password reset functionality
+- [x] Implement user registration system
+  - [x] Create registration form UI
+  - [x] Set up email validation
+  - [x] Implement password strength requirements
+  - [x] Add terms and conditions acceptance
+  - [x] Create user profile in Supabase upon registration
+- [x] Implement login system
+  - [x] Create login form UI
+  - [x] Implement authentication logic with Supabase
+  - [x] Set up JWT token management
+  - [x] Add "Remember me" functionality
+  - [x] Implement password reset functionality
 - [ ] User profile management
   - [ ] Create profile edit page
   - [ ] Allow users to update personal information
@@ -20,33 +20,33 @@
   - [ ] Add account settings management
 
 ## Entrepreneur Features
-- [ ] Business Profile Creation
-  - [ ] Create business profile UI with form fields
-  - [ ] Implement company logo upload functionality
-  - [ ] Add industry tags selection
-  - [ ] Enable social media links integration
-  - [ ] Create database schema in Supabase for business profiles
-- [ ] Company/Equity Listing
-  - [ ] Design listing creation interface
-  - [ ] Implement equity share offering functionality
-  - [ ] Create database schema for listings
+- [x] Business Profile Creation
+  - [x] Create business profile UI with form fields
+  - [x] Implement company logo upload functionality
+  - [x] Add industry tags selection
+  - [x] Enable social media links integration
+  - [x] Create database schema in Supabase for business profiles
+- [x] Company/Equity Listing
+  - [x] Design listing creation interface
+  - [x] Implement equity share offering functionality
+  - [x] Create database schema for listings
   - [ ] Add listing preview before publishing
-- [ ] Proposal and Document Management
-  - [ ] Implement document upload system with Supabase storage
-  - [ ] Create secure storage for sensitive documents
-  - [ ] Add document type categorization
-  - [ ] Enable document version control
-- [ ] Investor Interaction Controls
-  - [ ] Create approval system for document access
-  - [ ] Implement request management interface
+- [x] Proposal and Document Management
+  - [x] Implement document upload system with Supabase storage
+  - [x] Create secure storage for sensitive documents
+  - [x] Add document type categorization
+  - [x] Enable document version control
+- [x] Investor Interaction Controls
+  - [x] Create approval system for document access
+  - [x] Implement request management interface
   - [ ] Set up notification system for access requests
 
 ## Notifications and Communication
-- [ ] Real-Time Notifications
-  - [ ] Set up notification system using Supabase realtime
-  - [ ] Implement in-app notifications
-  - [ ] Add email notification options
-  - [ ] Create notification preferences settings
+- [x] Real-Time Notifications
+  - [x] Set up notification system using Supabase realtime
+  - [x] Implement in-app notifications
+  - [x] Add email notification options
+  - [x] Create notification preferences settings
 - [ ] Investor Interest Analytics
   - [ ] Design analytics dashboard
   - [ ] Implement tracking for listing views
