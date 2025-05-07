@@ -11,26 +11,65 @@ export class BusinessService {
    * @param profileData The business profile data
    * @returns The created business profile
    */
-  static async createBusinessProfile(userId: string, profileData: BusinessProfileFormData): Promise<BusinessProfile> {
-    const { data, error } = await supabase
-      .from('business_profiles')
-      .insert({
-        user_id: userId,
-        company_name: profileData.company_name,
-        description: profileData.description,
-        logo_url: profileData.logo_url,
-        industry_tags: profileData.industry_tags,
-        website_url: profileData.website_url,
-        social_media: profileData.social_media
-      })
-      .select()
-      .single();
+  static async createBusinessProfile(userId: string, formData: BusinessProfileFormData): Promise<BusinessProfile> {
+    console.log('Creating business profile for user:', userId);
+    console.log('Profile data:', JSON.stringify(formData, null, 2));
+    
+    try {
+      // First check if the profiles table exists and the user has a profile
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) {
+        console.error('Error checking user profile:', profileError);
+        // If the user doesn't have a profile, create one
+        if (profileError.code === 'PGRST116') { // Not found error
+          const { error: insertProfileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: 'user@example.com', // This should ideally come from auth.user
+              full_name: '',
+            });
+          
+          if (insertProfileError) {
+            console.error('Error creating user profile:', insertProfileError);
+            throw new Error(`Failed to create user profile: ${insertProfileError.message}`);
+          }
+        } else {
+          throw new Error(`Error checking user profile: ${profileError.message}`);
+        }
+      }
+      
+      // Now create the business profile
+      const { data, error } = await supabase
+        .from('business_profiles')
+        .insert({
+          user_id: userId,
+          company_name: formData.company_name,
+          description: formData.description,
+          logo_url: formData.logo_url,
+          industry_tags: formData.industry_tags,
+          website_url: formData.website_url,
+          social_media: formData.social_media
+        })
+        .select()
+        .single();
 
-    if (error) {
-      throw new Error(`Error creating business profile: ${error.message}`);
+      if (error) {
+        console.error('Error creating business profile:', error);
+        throw new Error(`Error creating business profile: ${error.message} (Code: ${error.code})`);
+      }
+
+      console.log('Business profile created successfully:', data);
+      return data as BusinessProfile;
+    } catch (err) {
+      console.error('Unexpected error in createBusinessProfile:', err);
+      throw err;
     }
-
-    return data as BusinessProfile;
   }
 
   /**

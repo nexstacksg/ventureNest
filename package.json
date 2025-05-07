@@ -16,6 +16,8 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@supabase/supabase-js": "^2.49.4",
+    "browserify-zlib": "^0.2.0",
+    "crypto-browserify": "^3.12.1",
     "dotenv": "^16.5.0",
     "expo": "~53.0.8",
     "expo-blur": "~14.1.4",
@@ -32,6 +34,9 @@
     "expo-symbols": "~0.4.4",
     "expo-system-ui": "~5.0.7",
     "expo-web-browser": "~14.1.6",
+    "https-browserify": "^1.0.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
@@ -40,7 +45,9 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

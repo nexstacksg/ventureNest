@@ -1,20 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/contexts/NotificationContext';
-import { BusinessService } from '@/services/business';
-import { DocumentService } from '@/services/document';
-import { BusinessProfile } from '@/types/business';
-import { Document } from '@/types/document';
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { BusinessService } from "@/services/business";
+import { DocumentService } from "@/services/document";
+import { BusinessProfile } from "@/types/business";
+import { Document } from "@/types/document";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function DashboardScreen() {
+  console.log("DashboardScreen");
   const { user } = useAuth();
   const { notifications } = useNotifications();
   const [isLoading, setIsLoading] = useState(true);
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
+  const [businessProfile, setBusinessProfile] =
+    useState<BusinessProfile | null>(null);
   const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   const [recentListings, setRecentListings] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -22,29 +31,46 @@ export default function DashboardScreen() {
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!user) {
-        router.replace('/login');
+        router.replace("/login");
         return;
       }
 
       try {
         setIsLoading(true);
-        
+
         // Get business profile
-        const profile = await BusinessService.getBusinessProfileByUserId(user.id);
+        const profile = await BusinessService.getBusinessProfileByUserId(
+          user.id
+        );
         setBusinessProfile(profile);
-        
+
         if (profile) {
-          // Load recent documents
-          const documents = await DocumentService.getDocumentsByBusinessProfileId(profile.id);
-          setRecentDocuments(documents.slice(0, 3)); // Get only the 3 most recent
-          
-          // Load recent listings
-          const listings = await BusinessService.getListingsByBusinessProfileId(profile.id);
-          setRecentListings(listings.slice(0, 3)); // Get only the 3 most recent
+          try {
+            // Load recent documents
+            const documents =
+              await DocumentService.getDocumentsByBusinessProfileId(profile.id);
+            setRecentDocuments(documents.slice(0, 3)); // Get only the 3 most recent
+          } catch (docErr: any) {
+            console.error("Error loading documents:", docErr);
+            // Don't fail the whole dashboard if documents fail to load
+          }
+
+          try {
+            // Load recent listings
+            const listings =
+              await BusinessService.getListingsByBusinessProfileId(profile.id);
+            setRecentListings(listings.slice(0, 3)); // Get only the 3 most recent
+          } catch (listingErr: any) {
+            console.error("Error loading listings:", listingErr);
+            // Set a specific error for listings
+            setError(`Error fetching listings: ${listingErr.message}`);
+          }
         }
       } catch (err: any) {
-        setError(err.message || 'Failed to load dashboard data');
+        console.error("Dashboard data loading error:", err);
+        setError(err.message || "Failed to load dashboard data");
       } finally {
+        // Always set loading to false, even if there are errors
         setIsLoading(false);
       }
     };
@@ -54,9 +80,9 @@ export default function DashboardScreen() {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   };
 
   if (isLoading) {
@@ -73,17 +99,19 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.userName}>{user?.email?.split('@')[0] || 'User'}</Text>
+          <Text style={styles.userName}>
+            {user?.email?.split("@")[0] || "User"}
+          </Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.notificationButton}
-          onPress={() => router.push('/notifications')}
+          onPress={() => router.push("/notifications")}
         >
           <Ionicons name="notifications" size={24} color="#2563EB" />
-          {notifications.filter(n => !n.is_read).length > 0 && (
+          {notifications.filter((n) => !n.is_read).length > 0 && (
             <View style={styles.notificationBadge}>
               <Text style={styles.notificationBadgeText}>
-                {notifications.filter(n => !n.is_read).length}
+                {notifications.filter((n) => !n.is_read).length}
               </Text>
             </View>
           )}
@@ -100,13 +128,16 @@ export default function DashboardScreen() {
         <View style={styles.createProfileCard}>
           <Text style={styles.createProfileTitle}>Complete Your Profile</Text>
           <Text style={styles.createProfileText}>
-            Create a business profile to showcase your company to potential investors.
+            Create a business profile to showcase your company to potential
+            investors.
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.createProfileButton}
-            onPress={() => router.push('/create-business-profile')}
+            onPress={() => router.push("/create-business-profile")}
           >
-            <Text style={styles.createProfileButtonText}>Create Business Profile</Text>
+            <Text style={styles.createProfileButtonText}>
+              Create Business Profile
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -126,15 +157,25 @@ export default function DashboardScreen() {
               </View>
             )}
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{businessProfile.company_name}</Text>
-              {businessProfile.industry_tags && businessProfile.industry_tags.length > 0 && (
-                <Text style={styles.profileIndustry}>{businessProfile.industry_tags[0]}</Text>
-              )}
+              <Text style={styles.profileName}>
+                {businessProfile.company_name}
+              </Text>
+              {businessProfile.industry_tags &&
+                businessProfile.industry_tags.length > 0 && (
+                  <Text style={styles.profileIndustry}>
+                    {businessProfile.industry_tags[0]}
+                  </Text>
+                )}
             </View>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editProfileButton}
-            onPress={() => router.push({ pathname: '/create-business-profile', params: { editing: 'true' } })}
+            onPress={() =>
+              router.push({
+                pathname: "/create-business-profile",
+                params: { editing: "true" },
+              })
+            }
           >
             <Text style={styles.editProfileButtonText}>Edit Profile</Text>
           </TouchableOpacity>
@@ -142,31 +183,31 @@ export default function DashboardScreen() {
       )}
 
       <View style={styles.actionsContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/create-listing')}
+          onPress={() => router.push("/create-listing")}
         >
-          <View style={[styles.actionIcon, { backgroundColor: '#EFF6FF' }]}>
+          <View style={[styles.actionIcon, { backgroundColor: "#EFF6FF" }]}>
             <Ionicons name="list" size={24} color="#2563EB" />
           </View>
           <Text style={styles.actionText}>Create Listing</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/upload-document')}
+          onPress={() => router.push("/upload-document")}
         >
-          <View style={[styles.actionIcon, { backgroundColor: '#F0FDF4' }]}>
+          <View style={[styles.actionIcon, { backgroundColor: "#F0FDF4" }]}>
             <Ionicons name="document-text" size={24} color="#16A34A" />
           </View>
           <Text style={styles.actionText}>Upload Document</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => router.push('/access-requests')}
+          onPress={() => router.push("/access-requests")}
         >
-          <View style={[styles.actionIcon, { backgroundColor: '#FEF3C7' }]}>
+          <View style={[styles.actionIcon, { backgroundColor: "#FEF3C7" }]}>
             <Ionicons name="key" size={24} color="#D97706" />
           </View>
           <Text style={styles.actionText}>Access Requests</Text>
@@ -177,25 +218,39 @@ export default function DashboardScreen() {
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Listings</Text>
-            <TouchableOpacity onPress={() => router.push('/listings')}>
+            <TouchableOpacity onPress={() => router.push("/listings")}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          
+
           {recentListings.map((listing, index) => (
             <View key={index} style={styles.listingItem}>
               <View style={styles.listingHeader}>
-                <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
-                <View style={[styles.statusBadge, 
-                  listing.status === 'published' ? styles.publishedBadge : 
-                  listing.status === 'draft' ? styles.draftBadge : styles.reviewBadge]}>
+                <Text style={styles.listingTitle} numberOfLines={1}>
+                  {listing.title}
+                </Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    listing.status === "published"
+                      ? styles.publishedBadge
+                      : listing.status === "draft"
+                      ? styles.draftBadge
+                      : styles.reviewBadge,
+                  ]}
+                >
                   <Text style={styles.statusText}>
-                    {listing.status === 'published' ? 'Published' : 
-                     listing.status === 'draft' ? 'Draft' : 'Under Review'}
+                    {listing.status === "published"
+                      ? "Published"
+                      : listing.status === "draft"
+                      ? "Draft"
+                      : "Under Review"}
                   </Text>
                 </View>
               </View>
-              <Text style={styles.listingDescription} numberOfLines={2}>{listing.description}</Text>
+              <Text style={styles.listingDescription} numberOfLines={2}>
+                {listing.description}
+              </Text>
             </View>
           ))}
         </View>
@@ -205,18 +260,20 @@ export default function DashboardScreen() {
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Documents</Text>
-            <TouchableOpacity onPress={() => router.push('/documents')}>
+            <TouchableOpacity onPress={() => router.push("/documents")}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          
+
           {recentDocuments.map((document, index) => (
             <View key={index} style={styles.documentItem}>
               <View style={styles.documentIconContainer}>
                 <Ionicons name="document-text" size={24} color="#2563EB" />
               </View>
               <View style={styles.documentContent}>
-                <Text style={styles.documentName} numberOfLines={1}>{document.name}</Text>
+                <Text style={styles.documentName} numberOfLines={1}>
+                  {document.name}
+                </Text>
                 <Text style={styles.documentDate}>
                   Uploaded: {new Date(document.created_at).toLocaleDateString()}
                 </Text>
@@ -235,31 +292,44 @@ export default function DashboardScreen() {
         <View style={[styles.sectionContainer, { marginBottom: 32 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Notifications</Text>
-            <TouchableOpacity onPress={() => router.push('/notifications')}>
+            <TouchableOpacity onPress={() => router.push("/notifications")}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
-          
+
           {notifications.slice(0, 3).map((notification, index) => (
-            <View key={index} style={[styles.notificationItem, !notification.is_read && styles.unreadNotification]}>
+            <View
+              key={index}
+              style={[
+                styles.notificationItem,
+                !notification.is_read && styles.unreadNotification,
+              ]}
+            >
               <View style={styles.notificationIconContainer}>
-                <Ionicons 
-                  name={notification.type.includes('document') ? 'document' : 
-                        notification.type.includes('message') ? 'mail' : 'notifications'} 
-                  size={24} 
-                  color="#2563EB" 
+                <Ionicons
+                  name={
+                    notification.type.includes("document")
+                      ? "document"
+                      : notification.type.includes("message")
+                      ? "mail"
+                      : "notifications"
+                  }
+                  size={24}
+                  color="#2563EB"
                 />
               </View>
               <View style={styles.notificationContent}>
-                <Text style={styles.notificationTitle}>{notification.title}</Text>
-                <Text style={styles.notificationMessage} numberOfLines={2}>{notification.message}</Text>
+                <Text style={styles.notificationTitle}>
+                  {notification.title}
+                </Text>
+                <Text style={styles.notificationMessage} numberOfLines={2}>
+                  {notification.message}
+                </Text>
                 <Text style={styles.notificationDate}>
                   {new Date(notification.created_at).toLocaleDateString()}
                 </Text>
               </View>
-              {!notification.is_read && (
-                <View style={styles.unreadDot} />
-              )}
+              {!notification.is_read && <View style={styles.unreadDot} />}
             </View>
           ))}
         </View>
@@ -271,80 +341,80 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#64748B',
+    color: "#64748B",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: "#E2E8F0",
   },
   greeting: {
     fontSize: 16,
-    color: '#64748B',
+    color: "#64748B",
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontWeight: "bold",
+    color: "#1E293B",
   },
   notificationButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
   },
   notificationBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -5,
     right: -5,
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
     borderRadius: 10,
     width: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   notificationBadgeText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorContainer: {
     margin: 20,
     padding: 12,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: "#FEF2F2",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: "#FECACA",
   },
   errorText: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 14,
   },
   createProfileCard: {
     margin: 20,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -352,42 +422,42 @@ const styles = StyleSheet.create({
   },
   createProfileTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontWeight: "bold",
+    color: "#1E293B",
     marginBottom: 8,
   },
   createProfileText: {
     fontSize: 14,
-    color: '#64748B',
+    color: "#64748B",
     marginBottom: 16,
     lineHeight: 20,
   },
   createProfileButton: {
-    backgroundColor: '#2563EB',
+    backgroundColor: "#2563EB",
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   createProfileButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
   },
   profileSummaryCard: {
     margin: 20,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
   profileLogo: {
@@ -400,57 +470,57 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
   profileLogoText: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2563EB',
+    fontWeight: "bold",
+    color: "#2563EB",
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontWeight: "bold",
+    color: "#1E293B",
     marginBottom: 4,
   },
   profileIndustry: {
     fontSize: 14,
-    color: '#64748B',
+    color: "#64748B",
   },
   editProfileButton: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: "#EFF6FF",
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: "#BFDBFE",
   },
   editProfileButtonText: {
-    color: '#2563EB',
-    fontWeight: '600',
+    color: "#2563EB",
+    fontWeight: "600",
     fontSize: 14,
   },
   actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     marginBottom: 20,
   },
   actionButton: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -460,57 +530,57 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
   actionText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#1E293B',
-    textAlign: 'center',
+    fontWeight: "500",
+    color: "#1E293B",
+    textAlign: "center",
   },
   sectionContainer: {
     marginHorizontal: 20,
     marginBottom: 20,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: "600",
+    color: "#1E293B",
   },
   seeAllText: {
     fontSize: 14,
-    color: '#2563EB',
-    fontWeight: '500',
+    color: "#2563EB",
+    fontWeight: "500",
   },
   listingItem: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   listingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   listingTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: "600",
+    color: "#1E293B",
     flex: 1,
   },
   statusBadge: {
@@ -519,32 +589,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   publishedBadge: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: "#DCFCE7",
   },
   draftBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: "#F1F5F9",
   },
   reviewBadge: {
-    backgroundColor: '#FEF9C3',
+    backgroundColor: "#FEF9C3",
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#1E293B',
+    fontWeight: "500",
+    color: "#1E293B",
   },
   listingDescription: {
     fontSize: 14,
-    color: '#64748B',
+    color: "#64748B",
     lineHeight: 20,
   },
   documentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -554,9 +624,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   documentContent: {
@@ -564,16 +634,16 @@ const styles = StyleSheet.create({
   },
   documentName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: "600",
+    color: "#1E293B",
     marginBottom: 4,
   },
   documentDate: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: "#94A3B8",
   },
   confidentialBadge: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: "#FEF2F2",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -581,33 +651,33 @@ const styles = StyleSheet.create({
   },
   confidentialText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#DC2626',
+    fontWeight: "500",
+    color: "#DC2626",
   },
   notificationItem: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   unreadNotification: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
     borderLeftWidth: 4,
-    borderLeftColor: '#2563EB',
+    borderLeftColor: "#2563EB",
   },
   notificationIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   notificationContent: {
@@ -615,26 +685,26 @@ const styles = StyleSheet.create({
   },
   notificationTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: "600",
+    color: "#1E293B",
     marginBottom: 4,
   },
   notificationMessage: {
     fontSize: 12,
-    color: '#64748B',
+    color: "#64748B",
     marginBottom: 4,
     lineHeight: 18,
   },
   notificationDate: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: "#94A3B8",
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: "#2563EB",
     marginLeft: 8,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });

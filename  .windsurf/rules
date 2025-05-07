@@ -7,3 +7,4 @@
 - Using Supabase for database with good practices
 - Using `services` folder for business logic and API
 - Using `types` folder for typescript types
+- When you create a new table and make sure using yyyymmddhhmmss_description.sql,and please add the RLS policies.
