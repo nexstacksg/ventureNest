@@ -5,7 +5,7 @@
 - Please read the windsurf/rules files for more details
 - Using Expo React Native
 - Using Prisma for database with good practices, always give a migration name
-- Using SQLite for database in development and Supabase for production
+- Using Supabase for database in development and production
 - Using `services` folder for business logic and API
 - Using `types` folder for typescript types
 - Using React Native with good practices, always give a migration name of prisma
