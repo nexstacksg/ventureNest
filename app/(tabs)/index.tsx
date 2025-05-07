@@ -1,12 +1,36 @@
 import { Image } from "expo-image";
 import { Platform, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
 
 import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { HelloApiService } from "@/services/api";
+import { HelloResponse } from "@/types/api";
 
 export default function HomeScreen() {
+  const [apiResponse, setApiResponse] = useState<HelloResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await HelloApiService.getHelloWorld();
+        setApiResponse(response);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching hello world:', err);
+        setError('Failed to fetch data from API');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -20,6 +44,20 @@ export default function HomeScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome! NexStack</ThemedText>
         <HelloWave />
+      </ThemedView>
+
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">API Response:</ThemedText>
+        {loading ? (
+          <ThemedText>Loading...</ThemedText>
+        ) : error ? (
+          <ThemedText style={{ color: 'red' }}>{error}</ThemedText>
+        ) : apiResponse ? (
+          <ThemedView>
+            <ThemedText type="defaultSemiBold">{apiResponse.message}</ThemedText>
+            <ThemedText style={styles.timestamp}>Timestamp: {new Date(apiResponse.timestamp).toLocaleTimeString()}</ThemedText>
+          </ThemedView>
+        ) : null}
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
@@ -76,5 +114,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: "absolute",
+  },
+  timestamp: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 4,
   },
 });
